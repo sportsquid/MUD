@@ -2,7 +2,8 @@
 #include <stdlib.h> //stuff
 #include <string.h> //for the strings
 #include <unistd.h> //close()
-#include "flatfile.h" //for database stuff
+#include "libraries/flatfile.h" //for database stuff
+
 
 #include <sys/types.h> //sockets
 #include <sys/socket.h>
@@ -28,9 +29,10 @@ extern int errno;
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
-
+#include "libraries/text.h" //invclude header containing all the text and stuff.
 int main(){
-    
+   
+
     puts("started the server!");
     //declare variables and arrays and stuff
     struct sockaddr_in address;
@@ -41,6 +43,11 @@ int main(){
     fd_set readfds;
     //set up client sockets
     int client_socket[MAX_CLIENTS];
+    //create arrays of variables for each user
+    int user_state[MAX_CLIENTS];
+
+
+
     //set all clients to 0
     for (i = 0; i < MAX_CLIENTS; i++) {  
         client_socket[i] = 0;  
@@ -92,7 +99,7 @@ int main(){
         
         //see which clients are connected
         for (i = 0; i < MAX_CLIENTS; i++){
-            printf("client #%d is on socket descriptor #%d\n", i, client_socket[i]);
+            //printf("client #%d is on socket descriptor #%d\n", i, client_socket[i]);
             //if socket is taken, add it to array
             if (client_socket[i] > 0){
                 FD_SET(client_socket[i], &readfds);
@@ -122,14 +129,16 @@ int main(){
             for(i = 0; i < MAX_CLIENTS; i++){
                 if(client_socket[i] == 0){
                 client_socket[i] = new_socket;
-                send(new_socket, "Welcome to the server!\n", sizeof("Welcome to the server!\n"), 0);
+                user_state[i] = 0;
+                send(new_socket,welcome_message, sizeof(welcome_message), 0);
+                send(client_socket[i], "\n>", sizeof("\n>"), 0);
                 break;
                 } else if(i == MAX_CLIENTS-1){
                     send(new_socket, "Sorry, server full\n", sizeof("Sorry, server full\n"), 0);
                     close(new_socket);
                 }
             }
-        }
+        }//end new user
         //check status of other connections
         for(i = 0; i < MAX_CLIENTS; i++){
             sd = client_socket[i];
@@ -137,8 +146,9 @@ int main(){
                 readval = read(sd, buffer, sizeof(buffer));
                 //if readval = 0, client diconhected. remove them from array 
                 if(readval == 0){
-                    //printf("Client #%d has disconnected.\n", i);
+                    printf(ANSI_COLOR_RED "Client #%d has disconnected.\n" ANSI_COLOR_RESET, i);
                     client_socket[i] = 0;
+                     user_state[i] = 0;
                     close(sd);
                 
                
@@ -149,8 +159,8 @@ int main(){
                 //check for line break
                 contains_linebr = 0;
                 for(j = 0; j < sizeof(buffer); j++){
-                    if (buffer[j] == '\n'){
-                        buffer[j+1] = '\0';
+                    if (buffer[j] == '\n' || buffer[j] == '\r'){
+                        buffer[j] = '\0';
                         contains_linebr = 1;
                     }
                     
@@ -159,15 +169,34 @@ int main(){
                     //============================this section is run for each user who entered something=======================
                 printf("A message came in on socket descriptor #%d\n", sd);
                 
+                //state 0 for home screen
+                if (user_state[i] == 0){
+                    printf(ANSI_COLOR_CYAN "String compare Results: %d\n" ANSI_COLOR_RESET, strcmp(buffer, "n"));
+                   if (strcmp(buffer, "n")==0 || strcmp(buffer, "N")==0){
+                       user_state[i] = 1;
+                        send(client_socket[i], login_message, sizeof(login_message), 0);
+                         
+                        send(client_socket[i], "Please enter the username you want", sizeof("Please enter the username you want"), 0);
+                        send(client_socket[i], "\n>", sizeof("\n>"), 0);
+                        
+                   }
+                    break;
+                }//end of state 0
+
+                if (user_state[i] == 1){
+                    if (createff(buffer) != -1){
+                        send(client_socket[i], "Hello!", sizeof("Hello!"), 0);
+                        send(client_socket[i], "\n>", sizeof("\n>"), 0);
+                    }
+                    
+                }//end of state 1
                 
-                sendval = send(client_socket[i], buffer, sizeof(buffer), 0);
-                if (sendval < 0){
-                    puts("Error writing to client");
-                    exit(1);
-                }
+                
+                
 
 
                 //=====================================================================================================
+                
             }
                 
             }

@@ -1,1 +1,1 @@
-This project is a proof of concept MUD. It will never be a top of the line MUD; instead, it will only iompliment the basics to show how it all can be done in C
+This project is a proof of concept MUD. It will never be a top of the line MUD; instead, it will only implement the basics to show how it all can be done in C

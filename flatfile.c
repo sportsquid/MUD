@@ -78,7 +78,7 @@ int writeff(char * dbname, char * variable, char * data){
             fclose(copy);
             rename("copy.txt", filename);
             remove("copy.txt");
-            return(1);
+            return(0);
 }//end of writeff
 
 //read flatfile

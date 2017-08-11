@@ -156,6 +156,7 @@ int main(){
                     
                 }
                 if (contains_linebr){
+                    //============================this section is run for each user who entered something=======================
                 printf("A message came in on socket descriptor #%d\n", sd);
                 
                 
@@ -164,6 +165,9 @@ int main(){
                     puts("Error writing to client");
                     exit(1);
                 }
+
+
+                //=====================================================================================================
             }
                 
             }

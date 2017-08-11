@@ -11,16 +11,16 @@ int writeff(char * dbname, char * variable, char * data){
     char filename[50];
     int i;
     int total_size = 0;
-    int filelength = 0;
+    long filelength = 0;
     int found = 0;
     FILE * file;
-    
-    
+
+
     memset(strcat_var, '\0', sizeof(strcat_var));
-    strcpy(strcat_var, dbname); 
+    strcpy(strcat_var, dbname);
     strcat(strcat_var, ".txt");
     strcpy(filename, strcat_var);
-    //open file, see if it exists 
+    //open file, see if it exists
     file = fopen(strcat_var, "r+");
     if (!file){
         return(-1);
@@ -29,10 +29,8 @@ int writeff(char * dbname, char * variable, char * data){
     FILE * copy = fopen("copy.txt", "w");
 
     //see how long the file is
-    while(fgets(readval, sizeof(readval), file) != NULL){
-        filelength++;
-    }
-    
+		filelength = getfilelength(file);
+
     //printf("file is %d lines long\n", filelength);
     //set cursor to 0
     fseek(file, 0, SEEK_SET);
@@ -44,38 +42,38 @@ int writeff(char * dbname, char * variable, char * data){
         memset(strcat_var, '\0', sizeof(strcat_var));
         memset(readval, '\0', sizeof(readval));
         //read line
-        fgets(readval, sizeof(readval), file); 
-        
-        
+        fgets(readval, sizeof(readval), file);
+
+
         //get strings ready
-        strcpy(strcat_var, "~"); 
+        strcpy(strcat_var, "~");
         strcat(strcat_var, variable);
-        
-        
+
+
         //printf("iteration: %d\n", i);
-        //printf("%s", readval);  
+        //printf("%s", readval);
         //see if the variable already exists
         if (strncmp(readval, strcat_var , strlen(variable)+ 1) == 0){
-            
+
             found = 1;
             fprintf(copy, "~%s %s\n", variable, data);
             //puts("variable found and changed");
-            
-        } 
+
+        }
         //see if no match was found
         else if (i == filelength && !found){
-           
+
             fprintf(copy, "~%s %s\n", variable, data);
              //puts("reached end of file");
-            
+
         } else{
             fputs(readval, copy);
             //puts("copied existing");
         }
 
         i++;
-    } while (i < filelength + 1);//end do while 
-   
+    } while (i <= filelength);//end do while
+
             fclose(file);
             fclose(copy);
             rename("copy.txt", filename);
@@ -85,46 +83,44 @@ int writeff(char * dbname, char * variable, char * data){
 
 //read flatfile
 int readff(char * dbname, char * variable, char * data){
-    
+
     char strcat_var[50];
     char filename[50];
     char readval[50];
     char c[1];
-    int i, j;
+    int j;
     int total_size = 0;
-    int filelength = 0;
-    
+    long filelength = 0, i;
+
     FILE * file;
-    
-    //sero out strings, set up filename
+
+    //zero out strings, set up filename
     memset(strcat_var, '\0', sizeof(strcat_var));
     memset(data, '\0', sizeof(data));
-    strcpy(strcat_var, dbname); 
+    strcpy(strcat_var, dbname);
     strcat(strcat_var, ".txt");
     strcpy(filename, strcat_var);
     memset(strcat_var, '\0', sizeof(strcat_var));
-    //open file, see if it exists 
+    //open file, see if it exists
     file = fopen(filename, "r");
     if (!file){
         return(-1);
     }
 
-    
+
 
     //see how long the file is
-    while(fgets(readval, sizeof(readval), file) != NULL){
-        filelength++;  
-    }
-    
+    filelength = getfilelength(file);
+
     //move back to begginign of file to look for variable
     fseek(file, 0, SEEK_SET);
     strcat(strcat_var, "~");
     strcat(strcat_var, variable);
     //loop through every line
-    for (i = 0; i < filelength + 1; i++){
+    for (i = 0; i <= filelength; i++){
         fgets(readval, sizeof(readval), file);
         total_size += strlen(readval);
-        
+
         if (strncmp(strcat_var, readval, strlen(strcat_var))==0){
             total_size -= strlen(readval);
             fseek(file, total_size + strlen(variable) +2, SEEK_SET);
@@ -135,10 +131,10 @@ int readff(char * dbname, char * variable, char * data){
             while(readval[j] != '\n'){
                 j++;
             }
-            
+
             memcpy(data, readval, j);
             data[j] = '\0';
-            
+
             break;
         }
     }
@@ -161,10 +157,12 @@ if(access(filename, F_OK) != -1){
     return(0);
 }
 
+long getfilelength(FILE * file) {
+	long ret = 0;
 
+	fseek(file, 0, SEEK_END);
+	ret = ftell(file);
+	rewind(file);
 
-
-
-
-
-
+	return ret;
+}

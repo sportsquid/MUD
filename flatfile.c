@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include "flatfile.h"
 
 
@@ -151,6 +152,10 @@ int createff(char * name){
     FILE *create;
     strcpy(filename, name);
     strcat(filename, ".txt");
+if(access(filename, F_OK) != -1){
+    return -1;
+}
+
     create = fopen(filename, "w");
     fclose(create);
     return(0);

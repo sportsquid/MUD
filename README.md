@@ -1,1 +1,1 @@
-Got nothin to but here for now
+This is gonna be a MUD.

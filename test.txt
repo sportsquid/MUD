@@ -1,0 +1,7 @@
+~username sportsquid
+~password jfeoijfpo
+~hp 100
+~max_hp 100
+~inv1 11
+~inv2 9
+~inv3 21

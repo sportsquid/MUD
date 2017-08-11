@@ -2,13 +2,13 @@
 #include <stdlib.h> //stuff
 #include <string.h> //for the strings
 #include <unistd.h> //close()
+#include "flatfile.h" //for database stuff
 
-#include <sys/types.h> 
+#include <sys/types.h> //sockets
 #include <sys/socket.h>
 #include <sys/select.h>
 
-
-#include <netinet/in.h>
+#include <netinet/in.h>//socket stuff
 #include <netdb.h>
 #include <arpa/inet.h>    //close()
 
@@ -30,6 +30,7 @@ extern int errno;
 
 
 int main(){
+    
     puts("started the server!");
     //declare variables and arrays and stuff
     struct sockaddr_in address;

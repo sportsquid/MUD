@@ -2,7 +2,7 @@
 #define character_H
 
 struct character{
-    char * username;
+    char username[25];
     int max_hp;
     int hp;
     int equip_weapon;

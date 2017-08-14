@@ -3,6 +3,7 @@
 #include <string.h> //for the strings
 #include <unistd.h> //close()
 #include "libraries/flatfile.h" //for database stuff
+#include "libraries/character.h"
 
 
 #include <sys/types.h> //sockets
@@ -29,13 +30,14 @@ extern int errno;
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
-#include "libraries/text.h" //invclude header containing all the text and stuff.
+#include "libraries/text.h" //include header containing all the text and stuff.
 int main(){
    
 
     puts("started the server!");
     //declare variables and arrays and stuff
     struct sockaddr_in address;
+    struct character client_character[MAX_CLIENTS];
     char buffer[256];
     char * message = "You have connected to the server!";
     int opt = 1;
@@ -172,25 +174,40 @@ int main(){
                 //state 0 for home screen
                 if (user_state[i] == 0){
                     printf(ANSI_COLOR_CYAN "String compare Results: %d\n" ANSI_COLOR_RESET, strcmp(buffer, "n"));
-                   if (strcmp(buffer, "n")==0 || strcmp(buffer, "N")==0){
+                   if (strcmp(buffer, "n")==0 || strcmp(buffer, "N")==0){   
                        user_state[i] = 1;
                         send(client_socket[i], login_message, sizeof(login_message), 0);
                          
                         send(client_socket[i], "Please enter the username you want", sizeof("Please enter the username you want"), 0);
-                        send(client_socket[i], "\n>", sizeof("\n>"), 0);
+                        //send(client_socket[i], "\n>", sizeof("\n>"), 0);
                         
                    }
-                    break;
+                    
                 }//end of state 0
 
-                if (user_state[i] == 1){
+                else if (user_state[i] == 1){
                     if (createff(buffer) != -1){
-                        send(client_socket[i], "Hello!", sizeof("Hello!"), 0);
-                        send(client_socket[i], "\n>", sizeof("\n>"), 0);
+                        send(client_socket[i], "Enter a password", sizeof("Enter a password"), 0);
+                        //send(client_socket[i], "\n>", sizeof("\n>"), 0);
+                        strcpy(client_character[i].username, buffer);
+                        user_state[i] = 2;
+                    } else {
+                        send(client_socket[i], "Username already taken, please enter a different one!", sizeof("Username already taken, please enter a different one!"), 0);
+                       
                     }
                     
                 }//end of state 1
                 
+                //state 2 (enter password)
+                else if (user_state[i] == 2){
+                    printf("client_character[i].username: %s", client_character[i].username);
+                    writeff(client_character[i].username, "password", buffer);
+                    user_state[i] = 3;
+                }
+                //state 3, enter password into DB
+                else if (user_state[i] == 3){
+                    
+                }
                 
                 
 
@@ -198,7 +215,8 @@ int main(){
                 //=====================================================================================================
                 
             }
-                
+            //send line thing at end 
+                 send(client_socket[i], "\n>", sizeof("\n>"), 0);
             }
 
 
